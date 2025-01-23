@@ -31,7 +31,7 @@ Console.WriteLine("Welcome to the Math Game!\n");
 
 // game loop starts here
 // 1 = addition, 2 = subtraction, 3 = multiplication, 4 = division, 5 = random operator, 6 = history
-// TODO: add Random and History choices for player
+
 do
 {
     
@@ -73,7 +73,7 @@ do
 EndGame();
 
 
-void EndGame()
+void EndGame()// provide end of game summary to include how many rounds played, number of correct answers and a score
 {
 
     Console.Clear();
@@ -82,7 +82,7 @@ void EndGame()
     PrintHistory(gameHistory);
 
 }
-
+// displays game mode options and prompts player for input
 void DisplayGameMenu(int roundsPlayed, int maxRounds)
 {
     Console.WriteLine($"Round {roundsPlayed} of {maxRounds}.\nSelect one of the following options:");
@@ -90,31 +90,36 @@ void DisplayGameMenu(int roundsPlayed, int maxRounds)
     Console.Write("Choice: ");
 }
 
+// reads user input and verifies it is a valid choice. returns selected mode
 string SelectGameOption()
-{
-    string? readSelection;
-    readSelection = Console.ReadLine();
-
-    if (readSelection != null)
+{   
+    bool valid = false;
+    do
     {
-    Console.Clear();
-        switch (readSelection)
+        string? readSelection;
+        string[] validSelection = {"1", "2", "3", "4", "5", "6", "exit"};
+        readSelection = Console.ReadLine().ToLower();
+        if (readSelection != null)
         {
-            case "1":
-            case "2":
-            case "3":
-            case "4":
-            case "5":
-            case "6":
-                return readSelection;         
-            default:
-                userSelection = "exit";
-                break;
+            if (validSelection.Contains(readSelection) == true)
+            {
+                userSelection = readSelection; 
+                valid = true;
+            }  
+            else
+            {
+                Console.Clear();
+                Console.WriteLine("You entered an invalid game mode.");
+                DisplayGameMenu(roundsPlayed + 1, maxRounds);
+            }
         }
-    }
-    return userSelection;
+    } while (valid == false);
+    Console.Clear();
+    return userSelection;         
+    
 }
 
+//generate numbers for math game
 void GetNumbers(int start = 1, int end = 13)
 {
     Random rand = new Random();
@@ -123,6 +128,7 @@ void GetNumbers(int start = 1, int end = 13)
 
 }
 
+// based on game mode selected, ask user a math question. Read user input and result in myAnswer
 int AskMathQuestion(int x, int y, int gameSelection)
 {
 
@@ -140,8 +146,8 @@ int AskMathQuestion(int x, int y, int gameSelection)
         case 4:
             bool notValidExpression = true; // division problem must result in whole number with no remainder
             do
-            {   // TODO: catch divide by zero here
-                // ensure the quotient results in an integer and has no remainder
+            {   
+                // ensure the quotient results in an integer and has no remainder. ensure no divide by zero
                 
                 if (y > 0 && x % y == 0)
                 {
@@ -160,14 +166,15 @@ int AskMathQuestion(int x, int y, int gameSelection)
             break;
     }
     
-    // TODO what error handling needs to happen here?
+    
     readResult = Console.ReadLine();
-    int.TryParse(readResult, out myAnswer); // TODO: throw exception if input is not a number
+    int.TryParse(readResult, out myAnswer); 
     return myAnswer;
 }
 
 
-
+// take myAnswer from AskMathQuestion and check for correct answer. use gameSelection to specify which operation to perform
+// returns boolean
 bool CheckAnswer(int myAnswer, int gameSelection)
 {
     bool answerIsCorrect = false;
@@ -216,6 +223,7 @@ bool CheckAnswer(int myAnswer, int gameSelection)
 
 }
 
+// waits for user to hit any key and clears the screen for next round or display of info. 
 void WaitAndClearScreen()
 {
     Console.Write("Press any key to continue...");
@@ -223,6 +231,7 @@ void WaitAndClearScreen()
     Console.Clear();
 }
 
+// store game info for each round into an array
 void StoreHistory(int roundsPlayed, string equation, int myAnswer, bool isCorrect)
 {
     int round = roundsPlayed;
@@ -232,7 +241,7 @@ void StoreHistory(int roundsPlayed, string equation, int myAnswer, bool isCorrec
     gameHistory[round, 2] = correct;
 }
 
-//TODO add round to printout
+// using gameHistory Array extract game info and display it
 void PrintHistory(string[,] gameHistory)
 {
     Console.Write($"Round  |  ");
@@ -240,7 +249,7 @@ void PrintHistory(string[,] gameHistory)
     Console.Write($"You Answered  |  ");
     Console.Write($"  Result\n");
 
-    // TODO: catch null value in array
+   
     for (int i = 0; i < gameHistory.GetLength(0); i++)
     {
         Console.Write(i+1 + "\t");
@@ -252,7 +261,7 @@ void PrintHistory(string[,] gameHistory)
     WaitAndClearScreen();
 }
 
-// Randomly select a number to mimic game selection of game mode operator (+, -, *, /)
+// when Random game mode is selected (5), randomly select a number to mimic game selection of game mode operator (+, -, *, /)
 string RandomOperator()
 {
     Random rand = new Random();
