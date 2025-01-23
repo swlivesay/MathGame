@@ -9,8 +9,11 @@
 
 */
 
+using System.Collections;
+
 Random rand = new Random();
-string[] gameHistory = new string[10];
+string[,] gameHistory = new string[10, 3];
+
 bool playGame = true;
 string? userSelection = "exit";
 string equation;
@@ -19,6 +22,9 @@ int gameSelection;
 int myAnswer;
 int firstNumber;
 int secondNumber;
+int roundsPlayed = 0;
+int maxRounds = 10;
+int correctAnswerCount = 0;
 
 Console.Clear();
 Console.WriteLine("Welcome to the Math Game!\n");
@@ -28,32 +34,59 @@ Console.WriteLine("Welcome to the Math Game!\n");
 // TODO: add Random and History choices for player
 do
 {
-    DisplayGameMenu();
     
-    // user selects which math operation to play, or enters exit to end game.
+    DisplayGameMenu(roundsPlayed + 1, maxRounds);
+    
+    // user selects which math operation to play, or enters exit to end game or print history.
     userSelection = SelectGameOption();
+    if (userSelection == "5")
+        userSelection = RandomOperator();
+
     if (userSelection == "exit")
     {
         playGame = false;
     }
+    else if (userSelection == "6")
+    {
+        PrintHistory(gameHistory);
+    }
     else
     {
-         
+        // if game selection is a math operator execute the below 
         int.TryParse(userSelection, out gameSelection);
         if (gameSelection == 4) // if division change scope of random to be 0-100 inclusive
-            GetNumbers(0, 101);
-        else        
+            GetNumbers(0, 101);       
+        else    
             GetNumbers();
         AskMathQuestion(firstNumber, secondNumber,  gameSelection);
-        bool isCorrect = CheckAnswer(myAnswer, gameSelection); // TODO does this bool need to be assigned?
+        bool isCorrect = CheckAnswer(myAnswer, gameSelection);
+        StoreHistory(roundsPlayed, equation, myAnswer, isCorrect);
+        roundsPlayed++; 
     }
-     
+
+    // count rounds played and end after the 10th round
+    if (roundsPlayed == maxRounds)
+        playGame = false;
+          
 } while (playGame == true);
 
-void DisplayGameMenu()
+EndGame();
+
+
+void EndGame()
 {
-    Console.WriteLine("Select one of the following options:");
-    Console.WriteLine("1 Addition\n2 Subtraction\n3 Multiplication\n4 Division\nType 'Exit' to quit\n");
+
+    Console.Clear();
+    Console.WriteLine($"Game Over!\n\nYou played {roundsPlayed} rounds and answered {correctAnswerCount} questions correctly.");
+    Console.WriteLine($"Your score is {(correctAnswerCount / (float)roundsPlayed):P2}\n");
+    PrintHistory(gameHistory);
+
+}
+
+void DisplayGameMenu(int roundsPlayed, int maxRounds)
+{
+    Console.WriteLine($"Round {roundsPlayed} of {maxRounds}.\nSelect one of the following options:");
+    Console.WriteLine("1 Addition\n2 Subtraction\n3 Multiplication\n4 Division\n5 Random\n6 Print History\nType 'Exit' to quit\n");
     Console.Write("Choice: ");
 }
 
@@ -71,7 +104,9 @@ string SelectGameOption()
             case "2":
             case "3":
             case "4":
-                return readSelection; 
+            case "5":
+            case "6":
+                return readSelection;         
             default:
                 userSelection = "exit";
                 break;
@@ -127,7 +162,6 @@ int AskMathQuestion(int x, int y, int gameSelection)
     
     // TODO what error handling needs to happen here?
     readResult = Console.ReadLine();
-    myAnswer = 0;
     int.TryParse(readResult, out myAnswer); // TODO: throw exception if input is not a number
     return myAnswer;
 }
@@ -149,16 +183,19 @@ bool CheckAnswer(int myAnswer, int gameSelection)
                 answerIsCorrect = true;
             break;
         case 2:
+            myOperator = '-';
             correctAnswer = firstNumber - secondNumber;
             if (myAnswer == correctAnswer)
                 answerIsCorrect = true;
             break; 
         case 3:
+            myOperator = 'x';
             correctAnswer = firstNumber * secondNumber;
             if (myAnswer == correctAnswer)
                 answerIsCorrect = true;
             break;
         case 4:
+            myOperator = '/';
             correctAnswer = firstNumber / secondNumber;
             if (myAnswer == correctAnswer)
                 answerIsCorrect = true;
@@ -169,17 +206,55 @@ bool CheckAnswer(int myAnswer, int gameSelection)
     if (answerIsCorrect == false)
         Console.WriteLine($"Incorrect, the correct answer is {correctAnswer}\n");   
     else
+    {
         Console.WriteLine("Correct!\n");
+        correctAnswerCount++;
+    }
 
-    Console.Write("Press any key to continue...");
-    Console.ReadKey();
-    Console.Clear();
+    WaitAndClearScreen();
     return answerIsCorrect;
 
 }
 
-// void StoreHistory(string equation, int myAnswer, int gameSelection)
-// {
-    
-   
-//}
+void WaitAndClearScreen()
+{
+    Console.Write("Press any key to continue...");
+    Console.ReadKey();
+    Console.Clear();
+}
+
+void StoreHistory(int roundsPlayed, string equation, int myAnswer, bool isCorrect)
+{
+    int round = roundsPlayed;
+    gameHistory[round, 0] = equation;
+    gameHistory[round, 1] = myAnswer.ToString();
+    string correct = (isCorrect)? "Correct": "Incorrect";
+    gameHistory[round, 2] = correct;
+}
+
+//TODO add round to printout
+void PrintHistory(string[,] gameHistory)
+{
+    Console.Write($"Round  |  ");
+    Console.Write($"Equation  |  ");
+    Console.Write($"You Answered  |  ");
+    Console.Write($"  Result\n");
+
+    // TODO: catch null value in array
+    for (int i = 0; i < gameHistory.GetLength(0); i++)
+    {
+        Console.Write(i+1 + "\t");
+        Console.Write($"  {gameHistory[i,0]}\t");
+        Console.Write($"    {gameHistory[i,1]}\t\t");
+        Console.Write($" {gameHistory[i,2]}\n");
+    }
+    Console.WriteLine("");
+    WaitAndClearScreen();
+}
+
+// Randomly select a number to mimic game selection of game mode operator (+, -, *, /)
+string RandomOperator()
+{
+    Random rand = new Random();
+    return rand.Next(1, 5).ToString();
+}
